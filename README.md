@@ -182,6 +182,7 @@ This project is based on the [llama.cpp](https://github.com/ggerganov/llama.cpp)
 ```bash
 git clone --recursive https://github.com/microsoft/BitNet.git
 cd BitNet
+git submodule update --init --recursive
 ```
 2. Install the dependencies
 ```bash
