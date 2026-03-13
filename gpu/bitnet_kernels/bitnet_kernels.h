@@ -6,6 +6,7 @@
 #include <cuda.h>
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
+#include <sm_61_intrinsics.h>
 
 
 #if (((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 4)) || (__CUDACC_VER_MAJOR__ > 11))
@@ -24,14 +25,14 @@ template <typename T1, typename T2>
 __device__ void decode_i2s_to_i8s(T1 *_i2s, T2 *_i8s, const int N = 16)
 {
   // convert 8 int2b_t to 8 int8b_t -> 2 int32
-  uint *i8s = reinterpret_cast<uint *>(_i8s);
+  unsigned int *i8s = reinterpret_cast<unsigned int *>(_i8s);
 
   // i2s = {e0, e4, e8, e12, e1, e5, e9, e13, e2, e6, e10, e14, e3, e7, e11, e15}
-  uint const i2s = *_i2s;
+  unsigned int const i2s = *_i2s;
 
-  static constexpr uint immLut = (0xf0 & 0xcc) | 0xaa;     // 0b11101010
-  static constexpr uint BOTTOM_MASK = 0x03030303;          // 0xf -> 0b11 select 0,3
-  static constexpr uint I4s_TO_I8s_MAGIC_NUM = 0x00000000; 
+  static constexpr unsigned int immLut = (0xf0 & 0xcc) | 0xaa;     // 0b11101010
+  static constexpr unsigned int BOTTOM_MASK = 0x03030303;          // 0xf -> 0b11 select 0,3
+  static constexpr unsigned int I4s_TO_I8s_MAGIC_NUM = 0x00000000; 
 
 #pragma unroll
   for (int i = 0; i < (N / 4); i++)

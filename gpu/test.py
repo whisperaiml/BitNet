@@ -3,6 +3,7 @@ from torch.utils import benchmark
 from torch import nn
 
 from pack_weight import convert_weight_int8_to_int2
+from kernel_loader import load_bitnet_kernel
 from torch.profiler import profile, record_function, ProfilerActivity
 import ctypes
 import numpy as np
@@ -10,7 +11,7 @@ import numpy as np
 torch.manual_seed(42)
 np.random.seed(42)
 
-bitnet_lib = ctypes.CDLL('bitnet_kernels/libbitnet.so')
+bitnet_lib = load_bitnet_kernel()
 
 def bitnet_int8xint2_linear(input0, input1, s, ws, ret):
     out_shape = list(input0.shape)

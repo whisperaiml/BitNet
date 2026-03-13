@@ -16,7 +16,9 @@ from xformers.ops.fmha.attn_bias import (
 )
 
 import ctypes
-bitnet_lib = ctypes.CDLL('bitnet_kernels/libbitnet.so')
+from kernel_loader import load_bitnet_kernel
+
+bitnet_lib = load_bitnet_kernel()
 
 def bitnet_int8xint2_linear(input0, input1, s, ws):
     out_shape = list(input0.shape)

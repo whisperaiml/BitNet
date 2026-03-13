@@ -39,9 +39,17 @@ gpu/checkpoints/*
 # Python
 
 /.venv
+/.venv-bitnet-gpu/
+/.tmp/
 __pycache__/
 */poetry.lock
 poetry.toml
 
 build/
 logs/
+
+# GPU kernel build outputs
+gpu/bitnet_kernels/libbitnet.dll
+gpu/bitnet_kernels/libbitnet.exp
+gpu/bitnet_kernels/libbitnet.lib
+gpu/bitnet_kernels/libbitnet.so*
