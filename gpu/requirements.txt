@@ -1,9 +1,6 @@
 fire
-sentencepiece
+numpy
 torch>=2.2.0
-xformers>=0.0.22
 tiktoken
-blobfile
-flask
 einops
-transformers
+safetensors

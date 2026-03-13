@@ -8,6 +8,19 @@ This repository provides a highly efficient GEMV kernel implementation for the B
 - Custom CUDA kernels with low-latency execution  
 - Optimizations for memory access, decoding, and compute throughput  
 
+## Supported Environment
+
+This `gpu/` subproject targets a CUDA Linux machine. The current kernel build and benchmark path assume:
+
+- Linux
+- An NVIDIA GPU with CUDA support
+- The CUDA toolkit on `PATH` (`nvcc`)
+- A CUDA-enabled PyTorch install
+
+It is not supported on macOS, Windows, or CPU-only environments. For Apple hardware, use the CPU inference path from the repository root README.
+
+The provided kernel was benchmarked on an NVIDIA A100 40GB GPU (`CUDA_ARCH=80`). If you build for a different GPU, override the architecture when compiling, for example `CUDA_ARCH=89 bash compile.sh`.
+
 ## Usage
 
 Installation and kernel performance tests:
@@ -17,10 +30,10 @@ Installation and kernel performance tests:
 conda create --name bitnet-gpu "python<3.13"
 conda activate bitnet-gpu
 
-# Install dependencies
+# Install benchmark and checkpoint-conversion dependencies
 pip install -r requirements.txt
 
-# Build the kernel
+# Build the kernel (defaults to CUDA_ARCH=80 for A100)
 cd bitnet_kernels
 bash compile.sh
 cd ..
@@ -29,9 +42,14 @@ cd ..
 python test.py
 ```
 
+`gpu/test.py` does not require `xformers`.
+
 End-to-end inference:
 
 ```bash
+# Install xformers separately with a version that matches your
+# PyTorch and CUDA build. xformers / PyTorch compatibility changes over time.
+
 # Download and convert the BitNet-b1.58-2B model
 mkdir checkpoints
 huggingface-cli download microsoft/bitnet-b1.58-2B-4T-bf16 --local-dir ./checkpoints/bitnet-b1.58-2B-4T-bf16

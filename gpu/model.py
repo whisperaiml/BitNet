@@ -3,20 +3,36 @@
 # This source code is licensed under the BSD license found in the
 # LICENSE file in the root directory of this source tree.
 
-from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import torch
 from torch import nn
 from torch.nn import functional as F
 
-from xformers.ops import RMSNorm, fmha, rope_padded
-from xformers.ops.fmha.attn_bias import (
-    BlockDiagonalCausalWithOffsetPaddedKeysMask as AttnBias,
-)
+try:
+    from xformers.ops import RMSNorm, fmha, rope_padded
+    from xformers.ops.fmha.attn_bias import (
+        BlockDiagonalCausalWithOffsetPaddedKeysMask as AttnBias,
+    )
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        "`gpu/model.py` requires `xformers` for the end-to-end inference path. "
+        "Install a version of `xformers` that matches your PyTorch and CUDA build before running `gpu/generate.py`."
+    ) from exc
 
 import ctypes
-bitnet_lib = ctypes.CDLL('bitnet_kernels/libbitnet.so')
+from model_args import ModelArgs
+
+
+_KERNEL_PATH = Path(__file__).resolve().parent / "bitnet_kernels" / "libbitnet.so"
+if not _KERNEL_PATH.exists():
+    raise FileNotFoundError(
+        f"Missing compiled CUDA kernel at `{_KERNEL_PATH}`. "
+        "Run `cd gpu/bitnet_kernels && bash compile.sh` on a Linux host with CUDA before importing `gpu/model.py`."
+    )
+
+bitnet_lib = ctypes.CDLL(str(_KERNEL_PATH))
 
 def bitnet_int8xint2_linear(input0, input1, s, ws):
     out_shape = list(input0.shape)
@@ -35,19 +51,6 @@ def bitnet_int8xint2_linear(input0, input1, s, ws):
     bitnet_lib.bitlinear_int8xint2(*[ctypes.c_void_p(input0.data_ptr()), ctypes.c_void_p(input1.data_ptr()), ctypes.c_void_p(ret.data_ptr()), ctypes.c_void_p(s.data_ptr()), ctypes.c_void_p(ws.data_ptr()), ctypes.c_int(M), ctypes.c_int(N), ctypes.c_int(K), ctypes.c_void_p(stream.cuda_stream)])
 
     return ret
-
-@dataclass
-class ModelArgs:
-    dim: int = 2560
-    n_layers: int = 30
-    n_heads: int = 20
-    n_kv_heads: int = 5
-    vocab_size: int = 128256
-    ffn_dim: int = 6912
-    norm_eps: float = 1e-5
-    rope_theta: float = 500000.0
-    use_kernel: bool = False
-
 
 LayerCache = Tuple[torch.Tensor, torch.Tensor]
 

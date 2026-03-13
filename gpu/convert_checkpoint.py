@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import torch
 from einops import rearrange
 from safetensors.torch import save_file
-import model
+from model_args import ModelArgs
 from pack_weight import convert_weight_int8_to_int2
 
 @torch.inference_mode()
@@ -17,7 +17,7 @@ def convert_ts_checkpoint(
     input_path: str = "",
 ) -> None:
 
-    config = model.ModelArgs()
+    config = ModelArgs()
     print(f"Model config {config.__dict__}")
 
     def quant_weight_int8(weight):

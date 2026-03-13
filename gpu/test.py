@@ -1,16 +1,22 @@
-import torch
-from torch.utils import benchmark
-from torch import nn
-
-from pack_weight import convert_weight_int8_to_int2
-from torch.profiler import profile, record_function, ProfilerActivity
 import ctypes
+from pathlib import Path
+
+from env_checks import ensure_cuda_runtime, ensure_kernel_library
+
+torch = ensure_cuda_runtime("`gpu/test.py`")
 import numpy as np
+from torch.profiler import profile, record_function, ProfilerActivity
+from torch.utils import benchmark
+from pack_weight import convert_weight_int8_to_int2
+
+
 # set all seed
 torch.manual_seed(42)
 np.random.seed(42)
 
-bitnet_lib = ctypes.CDLL('bitnet_kernels/libbitnet.so')
+_KERNEL_PATH = Path(__file__).resolve().parent / "bitnet_kernels" / "libbitnet.so"
+ensure_kernel_library(_KERNEL_PATH, "`gpu/test.py`")
+bitnet_lib = ctypes.CDLL(str(_KERNEL_PATH))
 
 def bitnet_int8xint2_linear(input0, input1, s, ws, ret):
     out_shape = list(input0.shape)

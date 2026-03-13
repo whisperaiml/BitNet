@@ -12,9 +12,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union
 
+from env_checks import ensure_cuda_runtime
+
+torch = ensure_cuda_runtime("`gpu/generate.py`")
 import fire
 import model as fast
-import torch
 from stats import Stats
 from tokenizer import Tokenizer, ChatFormat
 import sample_utils
